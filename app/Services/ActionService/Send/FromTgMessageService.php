@@ -41,6 +41,9 @@ abstract class FromTgMessageService extends TemplateMessageService
                     throw new Exception('group_id не настроен в конфиге!');
                 }
                 
+                // Преобразуем group_id в число (Telegram API требует число, для супергрупп это отрицательное число с -100)
+                $groupId = (int)$groupId;
+                
                 if (empty($this->botUser->topic_id)) {
                     Log::warning('FromTgMessageService: topic_id пустой, пытаемся создать новый топик', [
                         'bot_user_id' => $this->botUser->id,

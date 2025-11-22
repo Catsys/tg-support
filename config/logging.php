@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', env('APP_ENV') === 'production' ? 'railway' : 'stack'),
 
     'levels' => 'debug',
 
@@ -112,6 +112,12 @@ return [
             ],
             'formatter' => env('LOG_STDERR_FORMATTER'),
             'processors' => [PsrLogMessageProcessor::class],
+        ],
+
+        'railway' => [
+            'driver' => 'stack',
+            'channels' => ['single', 'stderr'],
+            'ignore_exceptions' => false,
         ],
 
         'syslog' => [
