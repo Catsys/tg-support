@@ -36,6 +36,19 @@ abstract class FromTgMessageService extends TemplateMessageService
                 $this->typeMessage = 'incoming';
 
                 $groupId = config('traffic_source.settings.telegram.group_id');
+                if (empty($groupId)) {
+                    Log::error('FromTgMessageService: group_id не настроен в конфиге');
+                    throw new Exception('group_id не настроен в конфиге!');
+                }
+                
+                if (empty($this->botUser->topic_id)) {
+                    Log::warning('FromTgMessageService: topic_id пустой, пытаемся создать новый топик', [
+                        'bot_user_id' => $this->botUser->id,
+                        'chat_id' => $this->botUser->chat_id,
+                    ]);
+                    $this->botUser->saveNewTopic();
+                }
+                
                 $queryParams = [
                     'chat_id' => $groupId,
                     'message_thread_id' => $this->botUser->topic_id,
@@ -56,6 +69,12 @@ abstract class FromTgMessageService extends TemplateMessageService
         $queryParams['methodQuery'] = 'sendMessage';
         $queryParams['typeSource'] = $update->typeSource;
         $this->messageParamsDTO = TGTextMessageDto::from($queryParams);
+        
+        Log::debug('FromTgMessageService: Параметры отправки сообщения', [
+            'typeSource' => $update->typeSource,
+            'queryParams' => $queryParams,
+            'topic_id' => $this->botUser->topic_id ?? null,
+        ]);
     }
 
     /**

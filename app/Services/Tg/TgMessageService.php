@@ -53,7 +53,17 @@ class TgMessageService extends FromTgMessageService
             }
 
             if (empty($resultQuery->ok)) {
-                throw new \Exception('Ошибка отправки запроса!');
+                Log::error('TgMessageService: Ошибка отправки запроса в Telegram', [
+                    'response_code' => $resultQuery->response_code,
+                    'type_error' => $resultQuery->type_error,
+                    'message' => $resultQuery->message,
+                    'text' => $resultQuery->text,
+                    'rawData' => $resultQuery->rawData,
+                    'chat_id' => $this->update->chatId,
+                    'typeSource' => $this->update->typeSource,
+                    'message_text' => $this->update->text,
+                ]);
+                throw new \Exception('Ошибка отправки запроса! Response code: ' . ($resultQuery->response_code ?? 'unknown') . ', Error: ' . ($resultQuery->type_error ?? $resultQuery->message ?? 'unknown'));
             }
 
             $this->saveMessage($resultQuery);
