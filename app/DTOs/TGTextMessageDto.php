@@ -39,7 +39,6 @@ class TGTextMessageDto extends Data
      * @param int|null $message_thread_id
      * @param string|null $text
      * @param string|null $caption
-     * @param string|null $parse_mode
      * @param array|null $reply_markup
      * @param array|null $reply_parameters
      * @param array|null $contact
@@ -52,6 +51,7 @@ class TGTextMessageDto extends Data
      * @param array|null $media
      * @param float|null $latitude
      * @param float|null $longitude
+     * @param string|null $parse_mode
      */
     public function __construct(
         public string   $methodQuery,
@@ -62,7 +62,6 @@ class TGTextMessageDto extends Data
         public ?int     $message_thread_id,
         public ?string  $text,
         public ?string  $caption,
-        public ?string  $parse_mode = 'html',
         public ?array   $reply_markup,
         public ?array   $reply_parameters,
 
@@ -80,6 +79,7 @@ class TGTextMessageDto extends Data
 
         public ?float  $latitude,
         public ?float  $longitude,
+        public ?string  $parse_mode = 'html',
     ) {}
 
     /**
