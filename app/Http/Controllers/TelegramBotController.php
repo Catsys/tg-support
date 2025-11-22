@@ -32,7 +32,28 @@ class TelegramBotController
         if ($this->dataHook->typeSource === 'private') {
             $this->platform = 'telegram';
         } else {
-            $this->platform = BotUser::getPlatformByTopicId($this->dataHook->messageThreadId);
+            // Для supergroup сообщений без топика не обрабатываем
+            if ($this->dataHook->typeSource === 'supergroup' && empty($this->dataHook->messageThreadId)) {
+                Log::debug('TelegramBotController: Сообщение из supergroup без топика, пропускаем', [
+                    'chatId' => $this->dataHook->chatId,
+                    'text' => $this->dataHook->text,
+                ]);
+                $this->platform = null;
+            } else {
+                // Безопасный вызов с проверкой на null
+                $this->platform = BotUser::getPlatformByTopicId($this->dataHook->messageThreadId);
+                
+                // Логирование для диагностики supergroup сообщений
+                if ($this->dataHook->typeSource === 'supergroup') {
+                    Log::debug('TelegramBotController: Обработка supergroup сообщения', [
+                        'messageThreadId' => $this->dataHook->messageThreadId,
+                        'platform' => $this->platform,
+                        'chatId' => $this->dataHook->chatId,
+                        'isBot' => $this->dataHook->isBot,
+                        'text' => $this->dataHook->text,
+                    ]);
+                }
+            }
         }
     }
 
@@ -66,6 +87,13 @@ class TelegramBotController
     public function bot_query(): void
     {
         $this->checkBotQuery();
+        
+        // Пропускаем сообщения без platform (например, supergroup без топика)
+        if (empty($this->platform) && $this->dataHook->typeSource === 'supergroup') {
+            Log::debug('TelegramBotController: Пропускаем сообщение без platform');
+            return;
+        }
+        
         if (!$this->dataHook->isBot) {
             switch ($this->platform) {
                 case 'telegram':
@@ -77,7 +105,16 @@ class TelegramBotController
                     break;
 
                 default:
-                    $this->controllerExternalPlatform();
+                    // Если platform не определена для supergroup, логируем и пытаемся обработать как telegram
+                    if ($this->dataHook->typeSource === 'supergroup') {
+                        Log::warning('TelegramBotController: platform не определена для supergroup, пытаемся обработать как telegram', [
+                            'messageThreadId' => $this->dataHook->messageThreadId,
+                            'chatId' => $this->dataHook->chatId,
+                        ]);
+                        $this->controllerPlatformTg();
+                    } else {
+                        $this->controllerExternalPlatform();
+                    }
                     break;
             }
         } else {

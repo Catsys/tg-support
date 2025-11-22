@@ -19,6 +19,13 @@ abstract class FromTgMessageService extends TemplateMessageService
     {
         $this->update = $update;
         $this->tgTopicService = new TgTopicService();
+        
+        Log::debug('FromTgMessageService: Поиск пользователя', [
+            'typeSource' => $update->typeSource,
+            'chatId' => $update->chatId,
+            'messageThreadId' => $update->messageThreadId,
+        ]);
+        
         $this->botUser = BotUser::getTelegramUserData($this->update);
 
         if (empty($this->botUser)) {
@@ -27,9 +34,17 @@ abstract class FromTgMessageService extends TemplateMessageService
                 'typeSource' => $update->typeSource,
                 'messageThreadId' => $update->messageThreadId,
                 'text' => $update->text,
+                'isBot' => $update->isBot,
             ]);
             throw new Exception('Пользователя не существует!');
         }
+        
+        Log::debug('FromTgMessageService: Пользователь найден', [
+            'bot_user_id' => $this->botUser->id,
+            'chat_id' => $this->botUser->chat_id,
+            'topic_id' => $this->botUser->topic_id,
+            'platform' => $this->botUser->platform,
+        ]);
 
         switch ($update->typeSource) {
             case 'private':

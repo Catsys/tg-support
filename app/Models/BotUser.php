@@ -120,19 +120,34 @@ class BotUser extends Model
     /**
      * Get platform by topic id
      *
-     * @param int $messageThreadId
+     * @param int|null $messageThreadId
      *
      * @return string|null
      */
-    public static function getPlatformByTopicId(int $messageThreadId): ?string
+    public static function getPlatformByTopicId(?int $messageThreadId): ?string
     {
         try {
+            if (empty($messageThreadId)) {
+                Log::debug('BotUser::getPlatformByTopicId: messageThreadId пустой');
+                return null;
+            }
+
             $botUser = self::select('platform')
                 ->where('topic_id', $messageThreadId)
                 ->first();
 
+            if (empty($botUser)) {
+                Log::warning('BotUser::getPlatformByTopicId: Пользователь не найден по topic_id', [
+                    'topic_id' => $messageThreadId,
+                ]);
+            }
+
             return $botUser->platform ?? null;
         } catch (\Exception $e) {
+            Log::error('BotUser::getPlatformByTopicId: Ошибка', [
+                'error' => $e->getMessage(),
+                'topic_id' => $messageThreadId,
+            ]);
             (new LokiLogger())->sendBasicLog($e);
             return null;
         }
