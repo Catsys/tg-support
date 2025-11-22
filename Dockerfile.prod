@@ -37,16 +37,20 @@ WORKDIR /var/www
 # Копирование composer файлов для установки зависимостей
 COPY composer.json composer.lock* ./
 
-# Установка PHP зависимостей (без dev зависимостей)
-RUN composer install --no-dev --optimize-autoloader --no-interaction \
-    && composer dump-autoload --optimize --classmap-authoritative \
+# Установка PHP зависимостей (без dev зависимостей и без скриптов, т.к. artisan еще не скопирован)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts \
     && composer clear-cache
 
 # Копирование package файлов для установки зависимостей
 COPY package.json package-lock.json* ./
 
+# Копирование файлов, необходимых для сборки frontend
+COPY vite.config.js ./
+COPY resources/ ./resources/
+COPY public/live_chat/widget.js ./public/live_chat/widget.js
+
 # Установка Node.js зависимостей и сборка frontend
-RUN npm ci \
+RUN npm install \
     && npm run build \
     && npm cache clean --force \
     && rm -rf node_modules
@@ -57,6 +61,9 @@ RUN chmod +x /usr/local/bin/railway-start.sh
 
 # Копирование остальных файлов проекта
 COPY . .
+
+# Выполнение composer скриптов и оптимизация autoload (теперь artisan доступен)
+RUN composer dump-autoload --optimize --classmap-authoritative
 
 # Создание необходимых директорий
 RUN mkdir -p /var/www/storage/logs \
