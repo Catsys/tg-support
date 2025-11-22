@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @property int    $topic_id
@@ -151,6 +152,13 @@ class BotUser extends Model
                 $botUser = self::where('topic_id', $update->messageThreadId)
                     ->with('externalUser')
                     ->first();
+                
+                if (empty($botUser)) {
+                    Log::warning('BotUser::getTelegramUserData: Пользователь не найден для supergroup', [
+                        'topic_id' => $update->messageThreadId,
+                        'chat_id' => $update->chatId,
+                    ]);
+                }
             } elseif ($update->typeSource === 'private') {
                 $botUser = self::firstOrCreate(
                     [
@@ -167,6 +175,12 @@ class BotUser extends Model
 
             return $botUser ?? null;
         } catch (\Exception $e) {
+            Log::error('BotUser::getTelegramUserData: Ошибка', [
+                'error' => $e->getMessage(),
+                'chat_id' => $update->chatId,
+                'typeSource' => $update->typeSource,
+                'messageThreadId' => $update->messageThreadId,
+            ]);
             return null;
         }
     }

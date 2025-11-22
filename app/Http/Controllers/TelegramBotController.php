@@ -16,6 +16,7 @@ use App\Services\TgTopicService;
 use App\Services\TgVk\TgVkEditService;
 use App\Services\TgVk\TgVkMessageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TelegramBotController
 {
@@ -107,7 +108,16 @@ class TelegramBotController
                     } elseif (str_contains($this->dataHook->text, '/ai_generate') && $this->isSupergroup()) {
                         (new SendAiAnswerMessage())->execute($this->dataHook);
                     } else {
-                        (new TgMessageService($this->dataHook))->handleUpdate();
+                        try {
+                            (new TgMessageService($this->dataHook))->handleUpdate();
+                        } catch (\Exception $e) {
+                            Log::error('TelegramBotController: Ошибка обработки сообщения', [
+                                'error' => $e->getMessage(),
+                                'chat_id' => $this->dataHook->chatId,
+                                'typeSource' => $this->dataHook->typeSource,
+                                'text' => $this->dataHook->text,
+                            ]);
+                        }
                     }
                     break;
 

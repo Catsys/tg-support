@@ -9,6 +9,7 @@ use App\DTOs\TelegramTopicDto;
 use App\DTOs\TelegramUpdateDto;
 use App\Models\Message;
 use App\Services\ActionService\Send\FromTgMessageService;
+use Illuminate\Support\Facades\Log;
 
 class TgMessageService extends FromTgMessageService
 {
@@ -27,6 +28,8 @@ class TgMessageService extends FromTgMessageService
                 throw new \Exception("Неизвестный тип события: {$this->update->typeQuery}");
             }
 
+            $resultQuery = null;
+
             if (!empty($this->update->rawData['message']['photo'])) {
                 $resultQuery = $this->sendPhoto();
             } elseif (!empty($this->update->rawData['message']['document'])) {
@@ -43,6 +46,10 @@ class TgMessageService extends FromTgMessageService
                 $resultQuery = $this->sendContact();
             } elseif (!empty($this->update->text)) {
                 $resultQuery = $this->sendMessage();
+            }
+
+            if (empty($resultQuery)) {
+                throw new \Exception('Не удалось определить тип сообщения для обработки');
             }
 
             if (empty($resultQuery->ok)) {
@@ -68,6 +75,11 @@ class TgMessageService extends FromTgMessageService
 
             return $resultQuery;
         } catch (\Exception $e) {
+            Log::error('TgMessageService::handleUpdate error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'update' => $this->update->toArray(),
+            ]);
             return null;
         }
     }

@@ -6,6 +6,7 @@ use App\DTOs\TelegramUpdateDto;
 use App\DTOs\TGTextMessageDto;
 use App\Models\BotUser;
 use App\Services\TgTopicService;
+use Illuminate\Support\Facades\Log;
 use phpDocumentor\Reflection\Exception;
 
 /**
@@ -21,6 +22,12 @@ abstract class FromTgMessageService extends TemplateMessageService
         $this->botUser = BotUser::getTelegramUserData($this->update);
 
         if (empty($this->botUser)) {
+            Log::error('FromTgMessageService: Пользователь не найден', [
+                'chat_id' => $update->chatId,
+                'typeSource' => $update->typeSource,
+                'messageThreadId' => $update->messageThreadId,
+                'text' => $update->text,
+            ]);
             throw new Exception('Пользователя не существует!');
         }
 
