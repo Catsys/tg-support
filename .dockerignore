@@ -1,0 +1,81 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker
+docker-compose.yml
+Dockerfile
+docker/
+
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# PHP dependencies
+vendor/
+
+# IDE
+.idea
+.vscode
+.fleet
+.zed
+.phpactor.json
+
+# Build artifacts
+public/build
+public/hot
+public/storage
+
+# Storage (will be created at runtime)
+storage/logs/*
+!storage/logs/.gitkeep
+storage/framework/cache/*
+!storage/framework/cache/.gitkeep
+storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+storage/framework/views/*
+!storage/framework/views/.gitkeep
+
+# Tests
+tests/
+.phpunit.cache
+phpunit.xml
+phpstan.neon
+.phpstan-error-count.json
+
+# Documentation
+README.md
+*.md
+LICENSE
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Logs
+*.log
+storage/pail
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Package files (already copied earlier)
+# package-lock.json
+# yarn.lock
+
+# Scripts (keep railway-start.sh)
+# railway-start.sh
